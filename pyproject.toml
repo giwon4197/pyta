@@ -1,5 +1,5 @@
 [project]
-name = "pyta"
+name = "pyta-finance"
 version = "0.1.0"
 description = "Python technical analysis and finance indicator library."
 readme = "README.md"
@@ -32,9 +32,9 @@ dev = [
 ]
 
 [project.urls]
-"Homepage" = "https://example.com/pyta"
-"Source" = "https://example.com/pyta"
-"Documentation" = "https://example.com/pyta/docs"
+"Homepage" = "https://github.com/giwon4197/pyta"
+"Source" = "https://github.com/giwon4197/pyta"
+"Documentation" = "https://github.com/giwon4197/pyta#readme"
 
 [build-system]
 requires = ["setuptools>=77.0", "wheel"]

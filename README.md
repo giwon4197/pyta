@@ -1,11 +1,24 @@
-# pyta
+# pyta-finance
 
-`pyta`는 Python에서 금융 데이터와 기술적 지표를 계산하기 위한 가벼운 라이브러리입니다.
+`pyta-finance`는 Python에서 금융 데이터와 기술적 지표를 계산하기 위한 가벼운 라이브러리입니다.
 TradingView Pine Script를 쓰던 사람이 Python에서도 비슷한 감각으로 지표를 사용할 수 있게 만드는 것을 목표로 합니다.
 
+설치 이름은 `pyta-finance`이고, Python 코드에서는 `pyta`로 import합니다.
 기존 내부 패키지 이름인 `finlib`도 남아 있지만, 새 코드에서는 `pyta`로 사용하는 것을 권장합니다.
 
 ## 설치
+
+PyPI에서 설치하려면:
+
+```bash
+python -m pip install pyta-finance
+```
+
+GitHub에서 바로 설치하려면:
+
+```bash
+python -m pip install git+https://github.com/giwon4197/pyta.git
+```
 
 개발 중에는 프로젝트 루트에서 editable 모드로 설치합니다.
 
