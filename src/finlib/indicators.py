@@ -46,6 +46,23 @@ def _hurst_exponent_window(
     slope, _ = np.polyfit(np.log(lags[valid]), np.log(tau[valid]), 1)
     return float(slope)
 
+def _rma(series: pd.Series, length: int) -> pd.Series:
+    rolling_mean = series.rolling(window=length, min_periods=length).mean()
+    result = pd.Series(np.nan, index=series.index, dtype=float)
+
+    for i, value in enumerate(series):
+        if pd.isna(value):
+            continue
+
+        if i == 0 or pd.isna(result.iloc[i - 1]):
+            if pd.notna(rolling_mean.iloc[i]):
+                result.iloc[i] = rolling_mean.iloc[i]
+            continue
+
+        result.iloc[i] = (result.iloc[i - 1] * (length - 1) + value) / length
+
+    return result
+
 # Price and candle basics
 
 def log_return(prices: pd.Series) -> pd.Series:
@@ -492,12 +509,15 @@ def rsi(
     gain = delta.clip(lower=0)
     loss = -delta.clip(upper=0)
 
-    avg_gain = gain.ewm(alpha=1 / length, adjust=False, min_periods=length).mean()
-    avg_loss = loss.ewm(alpha=1 / length, adjust=False, min_periods=length).mean()
+    avg_gain = _rma(gain, length)
+    avg_loss = _rma(loss, length)
 
     rs = avg_gain / avg_loss.replace(0, np.nan)
     result = 100 - (100 / (1 + rs))
-    return result.fillna(100).where(avg_gain.notna())
+    result = result.mask((avg_gain == 0) & (avg_loss == 0), 50)
+    result = result.mask((avg_gain > 0) & (avg_loss == 0), 100)
+    result = result.mask((avg_gain == 0) & (avg_loss > 0), 0)
+    return result.where(avg_gain.notna())
 
 def macd(
     prices: pd.Series,

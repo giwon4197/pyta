@@ -38,6 +38,8 @@ def test_rsi_is_bounded_after_warmup():
 
     assert not value.empty
     assert value.between(0, 100).all()
+    assert value.iloc[0] == pytest.approx(83.333333)
+    assert value.iloc[-1] == pytest.approx(87.848394)
 
 
 def test_macd_returns_expected_columns():
@@ -169,6 +171,9 @@ def test_stoch_rsi_matches_tradingview_shape():
     assert list(result.columns) == ["k", "d", "rsi", "stoch_rsi"]
     assert result["k"].dropna().between(0, 100).all()
     assert result["d"].dropna().between(0, 100).all()
+    assert result["rsi"].dropna().iloc[0] == pytest.approx(78.260870)
+    assert result["k"].dropna().iloc[0] == pytest.approx(85.061451)
+    assert result["d"].dropna().iloc[0] == pytest.approx(92.888051)
     assert stoch_rsi is derived_indicators.stoch_rsi
 
 
