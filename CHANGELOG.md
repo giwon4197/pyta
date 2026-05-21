@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.1.3 - 2026-05-22
+
+- Fixed RSI to use Wilder RMA seeded with the initial SMA.
+- Improved Stoch RSI compatibility with TradingView-style RSI values.
+
 ## 0.1.1 - 2026-05-22
 
 - Added general indicators: `log_return`, `high_low_range`, `body_ratio`, `relative_volume`, and `hurst_exponent`.
