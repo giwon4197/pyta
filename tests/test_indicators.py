@@ -227,7 +227,11 @@ def test_popular_standard_indicators_are_available():
     low = close - 2
     volume = pd.Series(1000 + (np.arange(90) % 13) * 100, index=index, dtype=float)
 
+    assert pyta.log_return(close).index.equals(index)
+    assert pyta.high_low_range(high, low).iloc[-1] == pytest.approx(4.0)
+    assert pyta.body_ratio(close - 1, high, low, close).dropna().between(0, 1).all()
     assert pyta.obv(close, volume).index.equals(index)
+    assert not pyta.relative_volume(volume, length=10).dropna().empty
     assert pyta.vwap(high, low, close, volume).dropna().iloc[-1] > 0
     assert pyta.mfi(high, low, close, volume, length=14).dropna().between(0, 100).all()
     assert not pyta.cci(high, low, close, length=20).dropna().empty
@@ -251,6 +255,7 @@ def test_popular_standard_indicators_are_available():
     assert not pyta.stddev(close, length=10).dropna().empty
     assert not pyta.variance(close, length=10).dropna().empty
     assert not pyta.historical_volatility(close, length=10).dropna().empty
+    assert not pyta.hurst_exponent(close, length=40, max_lag=10).dropna().empty
     assert pyta.natr(high, low, close).dropna().ge(0).all()
     assert pyta.chop(high, low, close).dropna().between(0, 100).all()
 
@@ -275,6 +280,22 @@ def test_popular_standard_indicators_are_available():
     assert pyta.psar is pyta.sar
     assert pyta.ultimate_oscillator is pyta.uo
     assert pyta.stdev is pyta.stddev
+    assert pyta.HistoricalVolatility is pyta.historical_volatility
+    assert pyta.RelativeVolume is pyta.relative_volume
+    assert pyta.HurstExponent is pyta.hurst_exponent
+
+
+def test_added_derived_indicators_are_available():
+    close = pd.Series(np.linspace(100, 150, 90), dtype=float)
+
+    ema_distance = pyta.ema20_ema60_distance(close)
+    width = pyta.bollinger_width(close, length=20)
+
+    assert not ema_distance.dropna().empty
+    assert not width.dropna().empty
+    assert width.dropna().ge(0).all()
+    assert pyta.EMA20_EMA60_distance is pyta.ema20_ema60_distance
+    assert pyta.BollingerWidth is pyta.bollinger_width
 
 
 def test_dataframe_return_column_rules():

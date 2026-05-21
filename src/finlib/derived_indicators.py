@@ -5,6 +5,74 @@ import pandas as pd
 
 from . import indicators as ind
 
+# Moving-average derivatives
+
+def ema20_ema60_distance(prices: pd.Series) -> pd.Series:
+    """Distance between EMA 20 and EMA 60."""
+    return ind.ema(prices, length=20) - ind.ema(prices, length=60)
+
+EMA20_EMA60_distance = ema20_ema60_distance
+
+# Band derivatives
+
+def bollinger_width(
+    prices: pd.Series,
+    length: int = 20,
+    mult: float = 2.0,
+    *,
+    num_std: float | None = None,
+    window: int | None = None,
+) -> pd.Series:
+    """Bollinger Band width normalized by the middle band."""
+    bands = ind.bb(
+        prices,
+        length=length,
+        mult=mult,
+        num_std=num_std,
+        window=window,
+    )
+    return (bands["upper"] - bands["lower"]) / bands["middle"].replace(0, np.nan)
+
+BollingerWidth = bollinger_width
+
+# Momentum derivatives
+
+def stoch_rsi(
+    src: pd.Series,
+    smooth_k: int = 3,
+    smooth_d: int = 3,
+    length_rsi: int = 14,
+    length_stoch: int = 14,
+) -> pd.DataFrame:
+    """Stochastic RSI translated from TradingView's built-in Pine Script."""
+    ind._validate_length(smooth_k, "smooth_k")
+    ind._validate_length(smooth_d, "smooth_d")
+    ind._validate_length(length_rsi, "length_rsi")
+    ind._validate_length(length_stoch, "length_stoch")
+
+    rsi_values = ind.rsi(src, length=length_rsi)
+    lowest_rsi = rsi_values.rolling(
+        window=length_stoch, min_periods=length_stoch
+    ).min()
+    highest_rsi = rsi_values.rolling(
+        window=length_stoch, min_periods=length_stoch
+    ).max()
+    rsi_range = (highest_rsi - lowest_rsi).replace(0, np.nan)
+
+    raw_k = 100 * (rsi_values - lowest_rsi) / rsi_range
+    k = ind.sma(raw_k, length=smooth_k)
+    d = ind.sma(k, length=smooth_d)
+
+    return pd.DataFrame(
+        {
+            "k": k,
+            "d": d,
+            "rsi": rsi_values,
+            "stoch_rsi": raw_k,
+        }
+    )
+
+# Institutional flow derivatives
 
 def whale_tracking(
     open_: pd.Series,
@@ -110,57 +178,21 @@ def whale_tracking(
         }
     )
 
-
 institution_pressure_normalized_weight = whale_tracking
 
-
-def stoch_rsi(
-    src: pd.Series,
-    smooth_k: int = 3,
-    smooth_d: int = 3,
-    length_rsi: int = 14,
-    length_stoch: int = 14,
-) -> pd.DataFrame:
-    """Stochastic RSI translated from TradingView's built-in Pine Script."""
-    ind._validate_length(smooth_k, "smooth_k")
-    ind._validate_length(smooth_d, "smooth_d")
-    ind._validate_length(length_rsi, "length_rsi")
-    ind._validate_length(length_stoch, "length_stoch")
-
-    rsi_values = ind.rsi(src, length=length_rsi)
-    lowest_rsi = rsi_values.rolling(
-        window=length_stoch, min_periods=length_stoch
-    ).min()
-    highest_rsi = rsi_values.rolling(
-        window=length_stoch, min_periods=length_stoch
-    ).max()
-    rsi_range = (highest_rsi - lowest_rsi).replace(0, np.nan)
-
-    raw_k = 100 * (rsi_values - lowest_rsi) / rsi_range
-    k = ind.sma(raw_k, length=smooth_k)
-    d = ind.sma(k, length=smooth_d)
-
-    return pd.DataFrame(
-        {
-            "k": k,
-            "d": d,
-            "rsi": rsi_values,
-            "stoch_rsi": raw_k,
-        }
-    )
-
+# Composite score helpers
 
 def _bars_ago_highest(values: np.ndarray) -> float:
     if np.isnan(values).any():
         return np.nan
     return float(len(values) - 1 - np.argmax(values))
 
-
 def _bars_ago_lowest(values: np.ndarray) -> float:
     if np.isnan(values).any():
         return np.nan
     return float(len(values) - 1 - np.argmin(values))
 
+# Composite score derivatives
 
 def spider_chart(
     high: pd.Series,
@@ -315,6 +347,5 @@ def spider_chart(
             "short_stop": short_stop,
         }
     )
-
 
 spider_chart_indicator = spider_chart
